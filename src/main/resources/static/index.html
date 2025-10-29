@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Spring Boot WebSocket Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>Spring Boot WebSocket Test</h2>
+
+<div>
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+</div>
+
+<div>
+    <input type="text" id="name" placeholder="Enter your name" />
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<h3>Messages:</h3>
+<div id="messages"></div>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+      const socket = new SockJS('http://localhost:8081/ws');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+        document.getElementById("messages").innerHTML += "<p><b>Connected!</b></p>";
+
+        stompClient.subscribe('/topic/topic1', function (message) {
+          showMessage(message.body);
+        });
+      });
+    }
+
+    function disconnect() {
+      if (stompClient !== null) {
+        stompClient.disconnect();
+      }
+      console.log("Disconnected");
+      document.getElementById("messages").innerHTML += "<p><b>Disconnected!</b></p>";
+    }
+
+    function sendMessage() {
+      const name = document.getElementById("name").value;
+      stompClient.send("/app/sendmessage", {}, name);
+    }
+
+    function showMessage(message) {
+      const msgDiv = document.getElementById("messages");
+      msgDiv.innerHTML += `<p>${message}</p>`;
+    }
+</script>
+</body>
+</html>
